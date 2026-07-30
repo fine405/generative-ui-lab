@@ -1,34 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Generative UI Lab
 
-## Getting Started
+A runnable collection of Generative UI patterns built with CopilotKit. Each
+example focuses on the boundary between what an agent produces and what the
+host application owns.
 
-First, run the development server:
+## Examples
+
+| Example | Agent produces | Host owns | Status |
+| --- | --- | --- | --- |
+| [Controlled UI](./src/app/examples/controlled) | A typed tool call | React component, styling, and behavior | Runnable |
+| [Open UI](./src/app/examples/open) | HTML, CSS, and interaction logic | Sandboxed iframe and communication bridge | Runnable |
+| Declarative UI / A2UI | A schema-constrained component tree | Catalog and renderer | Planned |
+| MCP Apps | A tool-linked UI resource | App host and sandbox | Planned |
+
+The planned rows are research directions, not placeholder implementations.
+
+## Stack
+
+- Next.js 16 App Router and React 19
+- CopilotKit Runtime v2 and React Core v2
+- CopilotKit `BuiltInAgent` in per-request factory mode
+- Vercel AI SDK 6 with AI Gateway
+- Vercel OIDC in production and for authenticated local development
+- TypeScript, Zod, ESLint, and the React Compiler
+
+The runtime uses CopilotKit's multi-route handler. Controlled UI registers a
+typed frontend component with `useComponent`; Open UI enables
+`openGenerativeUI` and renders generated interfaces in CopilotKit's sandbox.
+
+## Run locally
+
+Requirements: Node.js 20 or later, pnpm, and access to the linked Vercel
+project.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+pnpm dlx vercel@58.4.0 link --yes --scope <your-team> --project generative-ui-lab
+pnpm dlx vercel@58.4.0 env pull .env.local --yes
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The pulled
+`VERCEL_OIDC_TOKEN` is short-lived and `.env.local` is ignored by Git. Re-run
+the environment pull when the token expires.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For development outside Vercel, copy `.env.example` to `.env.local` and set an
+`AI_GATEWAY_API_KEY`. Do not expose either credential via a `NEXT_PUBLIC_`
+variable.
 
-## Learn More
+Vercel AI Gateway requires an enabled billing method before it serves model
+requests, even when OIDC authentication is valid.
 
-To learn more about Next.js, take a look at the following resources:
+## Verify
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm check
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This runs ESLint, TypeScript, and a production Next.js build. With the
+development server running, `/api/health` reports whether server-side AI
+authentication is configured without returning credential values.
 
-## Deploy on Vercel
+## Project map
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+src/
+├── app/
+│   ├── api/copilotkit/[...path]/       # Controlled runtime
+│   ├── api/copilotkit-open/[...path]/  # Open UI runtime
+│   ├── api/health/                     # Configuration readiness
+│   └── examples/                       # Example pages
+├── features/
+│   ├── controlled/
+│   └── open/
+└── lib/
+    ├── copilotkit/create-agent.ts
+    └── env.ts
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## References
+
+- [CopilotKit quickstart](https://docs.copilotkit.ai/quickstart)
+- [CopilotKit architecture](https://docs.copilotkit.ai/concepts/architecture)
+- [Tool-based Generative UI](https://docs.copilotkit.ai/built-in-agent/generative-ui/tool-based)
+- [Open Generative UI](https://docs.copilotkit.ai/generative-ui/open-generative-ui)
+- [Vercel AI Gateway authentication](https://vercel.com/docs/ai-gateway/authentication-and-byok/oidc)
