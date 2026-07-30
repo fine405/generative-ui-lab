@@ -12,23 +12,26 @@ const serverEnvSchema = z
   .object({
     AI_GATEWAY_API_KEY: z.string().trim().min(1).optional(),
     VERCEL_OIDC_TOKEN: z.string().trim().min(1).optional(),
+    VERCEL: z.literal("1").optional(),
     COPILOTKIT_MODEL: modelId.default("openai/gpt-5.4-mini"),
   })
   .superRefine((env, context) => {
-    if (!env.AI_GATEWAY_API_KEY && !env.VERCEL_OIDC_TOKEN) {
+    if (!env.AI_GATEWAY_API_KEY && !env.VERCEL_OIDC_TOKEN && !env.VERCEL) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "AI Gateway authentication is missing. Run `vercel env pull .env.local` or set AI_GATEWAY_API_KEY.",
+          "AI Gateway authentication is missing. Enable Vercel OIDC, run `vercel env pull .env.local`, or set AI_GATEWAY_API_KEY.",
         path: ["AI_GATEWAY_API_KEY"],
       });
     }
   });
 
-function readServerEnv() {
+function readServerEnv(headers?: Headers) {
   return {
     AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
-    VERCEL_OIDC_TOKEN: process.env.VERCEL_OIDC_TOKEN,
+    VERCEL_OIDC_TOKEN:
+      headers?.get("x-vercel-oidc-token") ?? process.env.VERCEL_OIDC_TOKEN,
+    VERCEL: process.env.VERCEL,
     COPILOTKIT_MODEL: process.env.COPILOTKIT_MODEL,
   };
 }
@@ -37,8 +40,11 @@ export function getServerEnv() {
   return serverEnvSchema.parse(readServerEnv());
 }
 
-export function getServerEnvStatus() {
-  const parsed = serverEnvSchema.safeParse(readServerEnv());
+export function getServerEnvStatus(headers?: Headers) {
+  const parsed = serverEnvSchema.safeParse({
+    ...readServerEnv(headers),
+    VERCEL: undefined,
+  });
 
   if (!parsed.success) {
     return {
