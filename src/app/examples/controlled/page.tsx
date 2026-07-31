@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExampleShell } from "@/components/example-shell";
 import { ControlledDemo } from "@/features/controlled/controlled-demo";
+import { getChatAvailability } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Controlled Generative UI",
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function ControlledExamplePage() {
+  const availability = getChatAvailability();
+
   return (
     <ExampleShell
       eyebrow="01 · CONTROLLED GENERATIVE UI"
@@ -20,7 +23,7 @@ export default function ControlledExamplePage() {
         { label: "Isolation", value: "Native component boundary" },
       ]}
     >
-      <ControlledDemo />
+      <ControlledDemo availability={availability} />
     </ExampleShell>
   );
 }

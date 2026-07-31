@@ -3,8 +3,9 @@ import {
   convertMessagesToVercelAISDKMessages,
   convertToolsToVercelAITools,
 } from "@copilotkit/runtime/v2";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { stepCountIs, streamText } from "ai";
-import { getServerEnv } from "@/lib/env";
+import type { RequestChatConfig } from "@/lib/env";
 
 type AgentMode = "controlled" | "open";
 
@@ -21,14 +22,22 @@ When the user asks for a visual, interactive widget, dashboard, diagram, calcula
 If the user asks a conceptual question, answer normally without generating a UI.`,
 };
 
-export function createGatewayAgent(mode: AgentMode) {
+export function createChatAgent(mode: AgentMode, config: RequestChatConfig) {
   return new BuiltInAgent({
     type: "aisdk",
     factory: ({ input, abortSignal }) => {
-      const env = getServerEnv();
+      if (!config.apiKey) {
+        throw new Error(config.issue ?? "Chat is not configured.");
+      }
+
+      const provider = createOpenAICompatible({
+        name: config.provider,
+        apiKey: config.apiKey,
+        baseURL: config.baseURL,
+      });
 
       return streamText({
-        model: env.COPILOTKIT_MODEL,
+        model: provider(config.model),
         system: prompts[mode],
         messages: convertMessagesToVercelAISDKMessages(input.messages),
         tools: convertToolsToVercelAITools(input.tools),

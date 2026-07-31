@@ -127,7 +127,7 @@ export default function Home() {
             </div>
             <div>
               <span>Model access</span>
-              <strong>Vercel AI Gateway + OIDC</strong>
+              <strong>OpenAI-compatible API</strong>
             </div>
             <div>
               <span>Deployment</span>

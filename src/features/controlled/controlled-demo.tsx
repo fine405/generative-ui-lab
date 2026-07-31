@@ -2,13 +2,14 @@
 
 import {
   CopilotChat,
-  CopilotKit,
   useComponent,
 } from "@copilotkit/react-core/v2";
+import { ChatRuntime } from "@/components/chat-runtime";
 import {
   MetricSnapshot,
   metricSnapshotSchema,
 } from "@/features/controlled/metric-snapshot";
+import type { ChatAvailability } from "@/lib/env";
 
 const prompts = [
   "Show a launch snapshot: 2,480 signups (+18%), 41% activation (+6%), 8.2% churn (-1.4%).",
@@ -38,7 +39,11 @@ function ControlledChat() {
   );
 }
 
-export function ControlledDemo() {
+export function ControlledDemo({
+  availability,
+}: {
+  availability: ChatAvailability;
+}) {
   return (
     <div className="demo-grid">
       <aside className="prompt-panel">
@@ -60,9 +65,12 @@ export function ControlledDemo() {
         </div>
       </aside>
       <section className="chat-panel" aria-label="Controlled UI chat demo">
-        <CopilotKit runtimeUrl="/api/copilotkit" useSingleEndpoint={false}>
+        <ChatRuntime
+          availability={availability}
+          runtimeUrl="/api/copilotkit"
+        >
           <ControlledChat />
-        </CopilotKit>
+        </ChatRuntime>
       </section>
     </div>
   );

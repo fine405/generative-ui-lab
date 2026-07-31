@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExampleShell } from "@/components/example-shell";
 import { OpenDemo } from "@/features/open/open-demo";
+import { getChatAvailability } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Open Generative UI",
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function OpenExamplePage() {
+  const availability = getChatAvailability();
+
   return (
     <ExampleShell
       eyebrow="02 · OPEN GENERATIVE UI"
@@ -20,7 +23,7 @@ export default function OpenExamplePage() {
         { label: "Isolation", value: "postMessage bridge" },
       ]}
     >
-      <OpenDemo />
+      <OpenDemo availability={availability} />
     </ExampleShell>
   );
 }

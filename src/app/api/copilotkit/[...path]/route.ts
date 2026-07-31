@@ -2,14 +2,18 @@ import {
   CopilotRuntime,
   createCopilotRuntimeHandler,
 } from "@copilotkit/runtime/v2";
-import { createGatewayAgent } from "@/lib/copilotkit/create-agent";
+import { createChatAgent } from "@/lib/copilotkit/create-agent";
+import { getRequestChatConfig } from "@/lib/env";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const copilotRuntime = new CopilotRuntime({
-  agents: () => ({
-    default: createGatewayAgent("controlled"),
+  agents: ({ request }) => ({
+    default: createChatAgent(
+      "controlled",
+      getRequestChatConfig(request.headers),
+    ),
   }),
 });
 

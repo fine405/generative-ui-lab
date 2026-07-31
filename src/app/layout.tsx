@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · Generative UI Lab",
   },
   description:
-    "Runnable Generative UI examples built with CopilotKit, Next.js, and Vercel AI Gateway.",
+    "Runnable Generative UI examples built with CopilotKit, Next.js, and an OpenAI-compatible model API.",
 };
 
 export default function RootLayout({

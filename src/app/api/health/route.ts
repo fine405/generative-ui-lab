@@ -1,14 +1,27 @@
-import { getServerEnvStatus } from "@/lib/env";
+import { getChatAvailability } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
-export function GET(request: Request) {
-  const status = getServerEnvStatus(request.headers);
+export function GET() {
+  const availability = getChatAvailability();
 
-  return Response.json(status, {
-    status: status.configured ? 200 : 503,
-    headers: {
-      "Cache-Control": "no-store",
+  return Response.json(
+    {
+      configured: !availability.issue,
+      chatEnabled: availability.serverEnabled,
+      acceptsBrowserKey: true,
+      provider: availability.provider,
+      model: availability.model,
+      source: availability.serverEnabled
+        ? "environment"
+        : "browser-key-required",
+      ...(availability.issue ? { issues: [availability.issue] } : {}),
     },
-  });
+    {
+      status: availability.issue ? 503 : 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    },
+  );
 }

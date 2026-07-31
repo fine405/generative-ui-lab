@@ -1,6 +1,8 @@
 "use client";
 
-import { CopilotChat, CopilotKit } from "@copilotkit/react-core/v2";
+import { CopilotChat } from "@copilotkit/react-core/v2";
+import { ChatRuntime } from "@/components/chat-runtime";
+import type { ChatAvailability } from "@/lib/env";
 
 const prompts = [
   "Build a tiny compound-interest calculator with two inputs and a live result.",
@@ -13,7 +15,11 @@ Use clear hierarchy, generous spacing, and accessible contrast.
 Prefer one focused interaction over a dashboard with many panels.
 Keep visible copy short. Avoid gradients unless they communicate state.`;
 
-export function OpenDemo() {
+export function OpenDemo({
+  availability,
+}: {
+  availability: ChatAvailability;
+}) {
   return (
     <div className="demo-grid">
       <aside className="prompt-panel">
@@ -35,10 +41,10 @@ export function OpenDemo() {
         </div>
       </aside>
       <section className="chat-panel" aria-label="Open UI chat demo">
-        <CopilotKit
-          runtimeUrl="/api/copilotkit-open"
+        <ChatRuntime
+          availability={availability}
           openGenerativeUI={{ designSkill }}
-          useSingleEndpoint={false}
+          runtimeUrl="/api/copilotkit-open"
         >
           <CopilotChat
             className="h-full"
@@ -49,7 +55,7 @@ export function OpenDemo() {
                 "Describe a focused interface. I will build it in a sandbox.",
             }}
           />
-        </CopilotKit>
+        </ChatRuntime>
       </section>
     </div>
   );
