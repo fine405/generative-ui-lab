@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "@copilotkit/react-core/v2/styles.css";
 import "./globals.css";
 
 const geist = Geist({
@@ -19,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s · Generative UI Lab",
   },
   description:
-    "Runnable Generative UI examples built with CopilotKit, Next.js, and pi-ai.",
+    "Runnable Generative UI examples built with pi-agent-core, assistant-ui, and Next.js.",
 };
 
 export default function RootLayout({

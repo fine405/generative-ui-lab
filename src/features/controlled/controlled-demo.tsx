@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  CopilotChat,
-  useComponent,
-} from "@copilotkit/react-core/v2";
+import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { ChatRuntime } from "@/components/chat-runtime";
 import {
   MetricSnapshot,
@@ -17,27 +14,33 @@ const prompts = [
   "Summarize three fictional support KPIs and render them visually.",
 ];
 
-function ControlledChat() {
-  useComponent({
-    name: "render_metric_snapshot",
-    description:
-      "Render a compact, read-only metric dashboard from two to four KPIs.",
-    parameters: metricSnapshotSchema,
-    render: MetricSnapshot,
-  });
+function MetricSnapshotTool({
+  args,
+  isError,
+}: ToolCallMessagePartProps) {
+  if (isError) {
+    return (
+      <div className="generated-ui-error" role="alert">
+        The metric snapshot could not be rendered.
+      </div>
+    );
+  }
 
-  return (
-    <CopilotChat
-      className="h-full"
-      labels={{
-        chatInputPlaceholder: "Ask for a metric snapshot…",
-        modalHeaderTitle: "Controlled Generative UI",
-        welcomeMessageText:
-          "Ask me to turn a few metrics into the host-owned React component.",
-      }}
-    />
+  const parsed = metricSnapshotSchema.safeParse(args);
+
+  return parsed.success ? (
+    <MetricSnapshot {...parsed.data} />
+  ) : (
+    <div className="generated-ui-loading">
+      <span aria-hidden="true" />
+      Receiving typed component props…
+    </div>
   );
 }
+
+const toolComponents = {
+  render_metric_snapshot: MetricSnapshotTool,
+};
 
 export function ControlledDemo({
   availability,
@@ -67,10 +70,11 @@ export function ControlledDemo({
       <section className="chat-panel" aria-label="Controlled UI chat demo">
         <ChatRuntime
           availability={availability}
-          runtimeUrl="/api/copilotkit"
-        >
-          <ControlledChat />
-        </ChatRuntime>
+          inputPlaceholder="Ask for a metric snapshot…"
+          mode="controlled"
+          toolComponents={toolComponents}
+          welcomeMessage="Ask me to turn a few metrics into the host-owned React component."
+        />
       </section>
     </div>
   );

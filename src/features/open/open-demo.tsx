@@ -1,6 +1,6 @@
 "use client";
 
-import { CopilotChat } from "@copilotkit/react-core/v2";
+import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { ChatRuntime } from "@/components/chat-runtime";
 import type { ChatAvailability } from "@/lib/chat";
 
@@ -10,11 +10,63 @@ const prompts = [
   "Make a compact color contrast explorer with editable foreground and background.",
 ];
 
-const designSkill = `Build compact, useful interfaces in the Vercel design language.
-Use a light #FAFAFA canvas, #171717 text, Geist-style typography, and a 4px spacing grid.
-Keep surfaces achromatic, use shadow rings instead of CSS borders, and reserve blue for interaction and focus.
-Use 6px controls, 12px cards, and font weights 400, 500, or 600 only.
-Prefer one focused interaction, concise copy, and no decorative gradients or transform-based hover effects.`;
+function OpenUITool({ args, isError }: ToolCallMessagePartProps) {
+  const title =
+    args && typeof args === "object" && typeof args.title === "string"
+      ? args.title
+      : "";
+  const html =
+    args && typeof args === "object" && typeof args.html === "string"
+      ? args.html
+      : "";
+
+  if (isError) {
+    return (
+      <div className="generated-ui-error" role="alert">
+        The generated interface could not be rendered.
+      </div>
+    );
+  }
+
+  if (!title || !html) {
+    return (
+      <div className="generated-ui-loading">
+        <span aria-hidden="true" />
+        Receiving the sandbox document…
+      </div>
+    );
+  }
+
+  const contentSecurityPolicy = [
+    "default-src 'none'",
+    "style-src 'unsafe-inline'",
+    "script-src 'unsafe-inline'",
+    "img-src data: blob:",
+    "font-src data:",
+    "connect-src 'none'",
+    "form-action 'none'",
+  ].join("; ");
+  const srcDoc = `<!doctype html><meta http-equiv="Content-Security-Policy" content="${contentSecurityPolicy}">${html}`;
+
+  return (
+    <div className="open-ui-frame">
+      <div className="open-ui-frame-header">
+        <span>Sandboxed output</span>
+        <strong>{title}</strong>
+      </div>
+      <iframe
+        referrerPolicy="no-referrer"
+        sandbox="allow-scripts"
+        srcDoc={srcDoc}
+        title={title}
+      />
+    </div>
+  );
+}
+
+const toolComponents = {
+  render_open_ui: OpenUITool,
+};
 
 export function OpenDemo({
   availability,
@@ -26,8 +78,8 @@ export function OpenDemo({
       <aside className="prompt-panel">
         <h2>Try a prompt</h2>
         <p>
-          The agent authors a complete interface and CopilotKit streams it into
-          an isolated iframe.
+          The agent authors a complete interface and the host mounts it in an
+          isolated iframe.
         </p>
         <div className="prompt-list">
           {prompts.map((prompt) => (
@@ -38,25 +90,17 @@ export function OpenDemo({
         </div>
         <div className="prompt-note">
           Boundary: the Agent provides HTML, CSS, and interaction logic. The
-          Host keeps the sandbox and communication bridge.
+          Host keeps the sandbox and decides when the document is mounted.
         </div>
       </aside>
       <section className="chat-panel" aria-label="Open UI chat demo">
         <ChatRuntime
           availability={availability}
-          openGenerativeUI={{ designSkill }}
-          runtimeUrl="/api/copilotkit-open"
-        >
-          <CopilotChat
-            className="h-full"
-            labels={{
-              chatInputPlaceholder: "Ask for a small interactive UI…",
-              modalHeaderTitle: "Open Generative UI",
-              welcomeMessageText:
-                "Describe a focused interface. I will build it in a sandbox.",
-            }}
-          />
-        </ChatRuntime>
+          inputPlaceholder="Ask for a small interactive UI…"
+          mode="open"
+          toolComponents={toolComponents}
+          welcomeMessage="Describe a focused interface. I will build it in a sandbox."
+        />
       </section>
     </div>
   );

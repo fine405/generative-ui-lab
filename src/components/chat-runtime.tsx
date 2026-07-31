@@ -1,11 +1,13 @@
 "use client";
 
-import { CopilotKit } from "@copilotkit/react-core/v2";
+import type { ToolCallMessagePartComponent } from "@assistant-ui/react";
 import { useId, useMemo, useState, useSyncExternalStore } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent } from "react";
+import { ChatThread } from "@/components/chat-thread";
 import {
   CHAT_API_KEY_HEADER,
   CHAT_MODEL_HEADER,
+  type AgentMode,
   type ChatAvailability,
 } from "@/lib/chat";
 
@@ -83,18 +85,18 @@ function writeSessionKeys(keys: Record<string, string>) {
 
 type ChatRuntimeProps = {
   availability: ChatAvailability;
-  children: ReactNode;
-  openGenerativeUI?: {
-    designSkill?: string;
-  };
-  runtimeUrl: string;
+  inputPlaceholder: string;
+  mode: AgentMode;
+  toolComponents: Record<string, ToolCallMessagePartComponent>;
+  welcomeMessage: string;
 };
 
 export function ChatRuntime({
   availability,
-  children,
-  openGenerativeUI,
-  runtimeUrl,
+  inputPlaceholder,
+  mode,
+  toolComponents,
+  welcomeMessage,
 }: ChatRuntimeProps) {
   const titleId = useId();
   const panelId = useId();
@@ -127,7 +129,6 @@ export function ChatRuntime({
   const [draftKey, setDraftKey] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [storageError, setStorageError] = useState("");
-  const [runtimeError, setRuntimeError] = useState("");
 
   function modelIsEnabled(model: ChatAvailability["models"][number]) {
     return (
@@ -187,7 +188,6 @@ export function ChatRuntime({
       }
 
       setDraftKey("");
-      setRuntimeError("");
       setSettingsOpen(false);
     } catch {
       setStorageError("This browser could not save the key for the session.");
@@ -209,7 +209,6 @@ export function ChatRuntime({
     }
 
     setDraftKey("");
-    setRuntimeError("");
     setSettingsOpen(false);
   }
 
@@ -241,7 +240,6 @@ export function ChatRuntime({
             className="chat-model-select"
             onChange={(event) => {
               setSelectedModelId(event.target.value);
-              setRuntimeError("");
             }}
             value={activeModel?.id ?? ""}
           >
@@ -373,25 +371,18 @@ export function ChatRuntime({
 
       <div className="chat-runtime-content">
         {activeModel ? (
-          <CopilotKit
+          <ChatThread
             headers={{
               [CHAT_MODEL_HEADER]: activeModel.id,
               ...(activeSessionKey
                 ? { [CHAT_API_KEY_HEADER]: activeSessionKey }
                 : {}),
             }}
-            onError={({ error }) => setRuntimeError(error.message)}
-            openGenerativeUI={openGenerativeUI}
-            runtimeUrl={runtimeUrl}
-            useSingleEndpoint={false}
-          >
-            {runtimeError ? (
-              <div className="chat-runtime-error" role="alert">
-                {runtimeError}
-              </div>
-            ) : null}
-            {children}
-          </CopilotKit>
+            inputPlaceholder={inputPlaceholder}
+            mode={mode}
+            toolComponents={toolComponents}
+            welcomeMessage={welcomeMessage}
+          />
         ) : (
           <div className="chat-locked">
             <div className="chat-locked-icon" aria-hidden="true">

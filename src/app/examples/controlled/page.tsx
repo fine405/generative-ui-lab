@@ -6,7 +6,7 @@ import { getChatAvailability } from "@/lib/env";
 export const metadata: Metadata = {
   title: "Controlled Generative UI",
   description:
-    "A typed React component selected and populated by a CopilotKit agent.",
+    "A typed React component selected and populated by a pi-agent-core agent.",
 };
 
 export default async function ControlledExamplePage() {
@@ -16,7 +16,7 @@ export default async function ControlledExamplePage() {
     <ExampleShell
       eyebrow="01 · CONTROLLED GENERATIVE UI"
       title="The agent chooses. The host renders."
-      description="A Zod schema is the boundary. CopilotKit exposes a host-authored React component as a frontend tool, and the model supplies only its typed props."
+      description="A typed tool schema is the boundary. pi-agent-core executes the tool, the project protocol carries its state, and the host supplies the React renderer."
       facts={[
         { label: "Agent output", value: "Tool call + props" },
         { label: "Renderer", value: "Host React component" },

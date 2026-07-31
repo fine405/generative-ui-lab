@@ -16,11 +16,11 @@ export default async function OpenExamplePage() {
     <ExampleShell
       eyebrow="02 · OPEN GENERATIVE UI"
       title="The agent authors a complete surface."
-      description="CopilotKit adds the UI-generation tool, streams its output as activity events, and mounts the result inside a sandboxed iframe rather than the host component tree."
+      description="A project-owned tool captures the generated document, streams its state over NDJSON, and mounts the result inside a sandboxed iframe rather than the host component tree."
       facts={[
         { label: "Agent output", value: "HTML + CSS + JS" },
         { label: "Renderer", value: "Sandboxed iframe" },
-        { label: "Isolation", value: "postMessage bridge" },
+        { label: "Isolation", value: "CSP + iframe sandbox" },
       ]}
     >
       <OpenDemo availability={availability} />

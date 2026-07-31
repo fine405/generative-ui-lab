@@ -15,7 +15,7 @@ const examples = [
     eyebrow: "02 · Open",
     title: "Sandboxed UI",
     description:
-      "The agent authors HTML, CSS, and interactions that stream into an isolated iframe.",
+      "The agent authors HTML, CSS, and interactions that the host delivers to an isolated iframe.",
     href: "/examples/open",
     status: "Runnable",
     tone: "violet",
@@ -29,7 +29,9 @@ export default function Home() {
       <main>
         <section className="hero">
           <div className="hero-copy">
-            <p className="eyebrow">COPILOTKIT · NEXT.JS · AG-UI</p>
+            <p className="eyebrow">
+              PI-AGENT-CORE · ASSISTANT-UI · NEXT.JS
+            </p>
             <h1>Small, runnable studies in Generative UI.</h1>
             <p className="hero-description">
               A focused lab for comparing what an agent delivers, what the host
@@ -42,11 +44,11 @@ export default function Home() {
               </Link>
               <a
                 className="secondary-link"
-                href="https://docs.copilotkit.ai/generative-ui"
+                href="https://github.com/earendil-works/pi/tree/main/packages/agent"
                 rel="noreferrer"
                 target="_blank"
               >
-                CopilotKit docs
+                pi-agent-core source
               </a>
             </div>
           </div>
@@ -123,11 +125,11 @@ export default function Home() {
             </div>
             <div>
               <span>Agent UI</span>
-              <strong>CopilotKit v2 + AG-UI</strong>
+              <strong>Project protocol + assistant-ui</strong>
             </div>
             <div>
-              <span>Model access</span>
-              <strong>pi-ai provider layer</strong>
+              <span>Agent core</span>
+              <strong>pi-agent-core + pi-ai</strong>
             </div>
             <div>
               <span>Deployment</span>

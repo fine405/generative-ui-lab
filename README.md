@@ -1,8 +1,9 @@
 # Generative UI Lab
 
-A runnable collection of Generative UI patterns built with CopilotKit. Each
-example focuses on the boundary between what an agent produces and what the
-host application owns.
+A runnable collection of Generative UI patterns built from first principles.
+Each example keeps the agent loop, wire protocol, browser state, and UI renderer
+visible in this repository so the boundary between model output and host-owned
+UI is easy to inspect.
 
 ## Examples
 
@@ -18,14 +19,42 @@ The planned rows are research directions, not placeholder implementations.
 ## Stack
 
 - Next.js 16 App Router and React 19
-- CopilotKit Runtime v2 and React Core v2
-- CopilotKit `BuiltInAgent` with a custom AG-UI stream adapter
+- `@earendil-works/pi-agent-core` for the stateful agent loop and tool execution
 - `@earendil-works/pi-ai` for provider catalogs, auth, and model streaming
+- A project-owned NDJSON event protocol and browser reducer
+- `assistant-ui` headless primitives with a project-owned chat model adapter
 - TypeScript, Zod, ESLint, and the React Compiler
 
-The app registers DeepSeek, OpenAI, Anthropic, and Google through their pi-ai
-provider factories. It does not implement provider URLs, request formats, or
-auth resolution itself.
+There is no CopilotKit, AG-UI, or AI SDK adapter. The app registers DeepSeek,
+OpenAI, Anthropic, and Google through pi-ai provider factories, but owns the
+agent-to-UI bridge itself.
+
+## How a run works
+
+```text
+assistant-ui composer
+  → POST /api/chat/:mode
+  → pi-agent-core Agent
+  → model text / tool-call / tool-result events
+  → bridgeAgentEvents()
+  → newline-delimited JSON
+  → applyChatStreamEvent()
+  → assistant-ui local runtime view
+  → host tool renderer
+```
+
+The transport intentionally exposes a small event vocabulary:
+
+- `message.start`, `text.delta`, and `message.end` build assistant messages;
+- `tool.start`, `tool.args.delta`, and `tool.args.complete` expose streamed tool
+  construction;
+- `tool.result` records execution completion or failure;
+- `error` and `run.end` close the run lifecycle.
+
+The controlled example validates tool arguments and renders an allowlisted
+React component in the host tree. The open example accepts a self-contained
+HTML document and mounts it in an iframe with a restrictive CSP and
+`sandbox="allow-scripts"`.
 
 ## Chat configuration
 
@@ -121,17 +150,19 @@ are enabled without returning credential values.
 ```text
 src/
 ├── app/
-│   ├── api/copilotkit/[...path]/       # Controlled runtime
-│   ├── api/copilotkit-open/[...path]/  # Open UI runtime
+│   ├── api/chat/[mode]/                # Custom streaming route
 │   ├── api/health/                     # Safe configuration status
 │   └── examples/                       # Example pages
-├── components/chat-runtime.tsx         # Session key and settings UI
+├── components/
+│   ├── chat-runtime.tsx                # Model and session-key settings
+│   └── chat-thread.tsx                 # assistant-ui custom model adapter
 ├── features/
-│   ├── controlled/
-│   └── open/
+│   ├── controlled/                     # Typed component renderer
+│   └── open/                           # Sandboxed document renderer
 └── lib/
-    ├── chat.ts                         # Serializable chat contracts
-    ├── copilotkit/create-agent.ts      # pi-ai → AG-UI event adapter
+    ├── agent/create-chat-agent.ts      # Agent, tools, event bridge
+    ├── chat.ts                         # Serializable protocol contracts
+    ├── chat-stream.ts                  # Browser event reducer
     ├── env.ts                          # Server/browser request config
     └── pi-models.ts                    # pi-ai providers and model allowlist
 ```
@@ -139,8 +170,8 @@ src/
 ## References
 
 - [Project design language](./DESIGN.md)
-- [CopilotKit quickstart](https://docs.copilotkit.ai/quickstart)
-- [Tool-based Generative UI](https://docs.copilotkit.ai/built-in-agent/generative-ui/tool-based)
-- [Open Generative UI](https://docs.copilotkit.ai/generative-ui/open-generative-ui)
+- [pi-agent-core](https://github.com/earendil-works/pi/tree/main/packages/agent)
 - [pi-ai provider and model API](https://github.com/earendil-works/pi/tree/main/packages/ai)
+- [assistant-ui custom runtimes](https://www.assistant-ui.com/docs/runtimes/custom/overview)
+- [Next.js Route Handlers](https://nextjs.org/docs/app/api-reference/file-conventions/route)
 - [Vercel environment variables](https://vercel.com/docs/environment-variables)
