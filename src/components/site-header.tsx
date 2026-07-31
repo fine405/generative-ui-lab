@@ -4,10 +4,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <Link className="brand" href="/">
-        <span className="brand-mark" aria-hidden="true">
-          UI
-        </span>
-        <span>Generative UI Lab</span>
+        Generative UI Lab
       </Link>
       <nav className="header-links" aria-label="Primary navigation">
         <Link href="/examples/controlled">Examples</Link>

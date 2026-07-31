@@ -138,6 +138,7 @@ src/
 
 ## References
 
+- [Project design language](./DESIGN.md)
 - [CopilotKit quickstart](https://docs.copilotkit.ai/quickstart)
 - [Tool-based Generative UI](https://docs.copilotkit.ai/built-in-agent/generative-ui/tool-based)
 - [Open Generative UI](https://docs.copilotkit.ai/generative-ui/open-generative-ui)
