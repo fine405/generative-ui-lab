@@ -2,7 +2,7 @@
 
 import { CopilotChat } from "@copilotkit/react-core/v2";
 import { ChatRuntime } from "@/components/chat-runtime";
-import type { ChatAvailability } from "@/lib/env";
+import type { ChatAvailability } from "@/lib/chat";
 
 const prompts = [
   "Build a tiny compound-interest calculator with two inputs and a live result.",

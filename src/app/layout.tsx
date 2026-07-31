@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · Generative UI Lab",
   },
   description:
-    "Runnable Generative UI examples built with CopilotKit, Next.js, and an OpenAI-compatible model API.",
+    "Runnable Generative UI examples built with CopilotKit, Next.js, and pi-ai.",
 };
 
 export default function RootLayout({

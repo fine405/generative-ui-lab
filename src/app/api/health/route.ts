@@ -2,19 +2,23 @@ import { getChatAvailability } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  const availability = getChatAvailability();
+export async function GET() {
+  const availability = await getChatAvailability();
+  const enabledProviders = availability.providers
+    .filter((provider) => provider.serverEnabled)
+    .map((provider) => provider.id);
 
   return Response.json(
     {
       configured: !availability.issue,
-      chatEnabled: availability.serverEnabled,
+      chatEnabled: enabledProviders.length > 0,
       acceptsBrowserKey: true,
-      provider: availability.provider,
-      model: availability.model,
-      source: availability.serverEnabled
-        ? "environment"
-        : "browser-key-required",
+      defaultModel: availability.defaultModel,
+      enabledProviders,
+      models: availability.models.map((model) => ({
+        ...model,
+        enabled: enabledProviders.includes(model.provider),
+      })),
       ...(availability.issue ? { issues: [availability.issue] } : {}),
     },
     {

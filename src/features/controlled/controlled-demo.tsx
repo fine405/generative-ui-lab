@@ -9,7 +9,7 @@ import {
   MetricSnapshot,
   metricSnapshotSchema,
 } from "@/features/controlled/metric-snapshot";
-import type { ChatAvailability } from "@/lib/env";
+import type { ChatAvailability } from "@/lib/chat";
 
 const prompts = [
   "Show a launch snapshot: 2,480 signups (+18%), 41% activation (+6%), 8.2% churn (-1.4%).",

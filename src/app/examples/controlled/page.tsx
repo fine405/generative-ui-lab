@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     "A typed React component selected and populated by a CopilotKit agent.",
 };
 
-export default function ControlledExamplePage() {
-  const availability = getChatAvailability();
+export default async function ControlledExamplePage() {
+  const availability = await getChatAvailability();
 
   return (
     <ExampleShell

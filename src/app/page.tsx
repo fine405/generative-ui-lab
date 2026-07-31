@@ -127,7 +127,7 @@ export default function Home() {
             </div>
             <div>
               <span>Model access</span>
-              <strong>OpenAI-compatible API</strong>
+              <strong>pi-ai provider layer</strong>
             </div>
             <div>
               <span>Deployment</span>

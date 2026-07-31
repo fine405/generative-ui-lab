@@ -578,13 +578,23 @@ textarea {
   box-shadow: 0 0 0 3px rgba(121, 224, 166, 0.12);
 }
 
-.chat-model {
-  overflow: hidden;
-  color: #707782;
+.chat-model-select {
+  min-width: 0;
+  max-width: 260px;
+  padding: 6px 28px 6px 9px;
+  border: 1px solid #282e37;
+  border-radius: 7px;
+  outline: none;
+  background: #101319;
+  color: #c2c8d0;
+  color-scheme: dark;
   font-family: var(--font-geist-mono), monospace;
   font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.chat-model-select:focus {
+  border-color: #697789;
+  box-shadow: 0 0 0 3px rgba(105, 119, 137, 0.14);
 }
 
 .chat-settings-trigger,
@@ -613,7 +623,7 @@ textarea {
 
 .chat-settings {
   position: absolute;
-  z-index: 4;
+  z-index: 1000;
   top: 57px;
   right: 12px;
   width: min(420px, calc(100% - 24px));
@@ -672,7 +682,8 @@ textarea {
   font-weight: 570;
 }
 
-.chat-settings > input {
+.chat-settings > input,
+.chat-settings > select {
   width: 100%;
   margin-top: 7px;
   padding: 10px 11px;
@@ -681,11 +692,13 @@ textarea {
   outline: none;
   background: #0b0d11;
   color: #e8ebef;
+  color-scheme: dark;
   font-family: var(--font-geist-mono), monospace;
   font-size: 12px;
 }
 
-.chat-settings > input:focus {
+.chat-settings > input:focus,
+.chat-settings > select:focus {
   border-color: #697789;
   box-shadow: 0 0 0 3px rgba(105, 119, 137, 0.16);
 }
@@ -973,5 +986,21 @@ textarea {
 
   .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chat-access-bar {
+    align-items: stretch;
+  }
+
+  .chat-access-bar > div {
+    flex: 1;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .chat-model-select {
+    width: 100%;
+    max-width: none;
   }
 }

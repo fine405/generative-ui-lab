@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     "Agent-authored HTML, CSS, and interactions streamed into a sandboxed iframe.",
 };
 
-export default function OpenExamplePage() {
-  const availability = getChatAvailability();
+export default async function OpenExamplePage() {
+  const availability = await getChatAvailability();
 
   return (
     <ExampleShell
