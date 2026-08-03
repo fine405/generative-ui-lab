@@ -3,43 +3,58 @@
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { ChatRuntime } from "@/components/chat-runtime";
 import {
-  MetricSnapshot,
-  metricSnapshotSchema,
-} from "@/features/controlled/metric-snapshot";
+  weatherInputSchema,
+  weatherOutputSchema,
+} from "@/features/controlled/weather-contract";
+import {
+  WeatherCard,
+  WeatherCardError,
+} from "@/features/controlled/weather-card";
 import type { ChatAvailability } from "@/lib/chat";
 
 const prompts = [
-  "Show a launch snapshot: 2,480 signups (+18%), 41% activation (+6%), 8.2% churn (-1.4%).",
-  "Create a compact weekly metrics card for an AI coding assistant.",
-  "Summarize three fictional support KPIs and render them visually.",
+  "Is Shanghai good for cycling today?",
+  "Show Beijing weather in Fahrenheit.",
+  "What is the weather in Atlantis?",
 ];
 
-function MetricSnapshotTool({
+function WeatherTool({
   args,
   isError,
+  result,
 }: ToolCallMessagePartProps) {
+  const input = weatherInputSchema.safeParse(args);
+
   if (isError) {
     return (
-      <div className="generated-ui-error" role="alert">
-        The metric snapshot could not be rendered.
-      </div>
+      <WeatherCardError
+        city={input.success ? input.data.city : undefined}
+      />
     );
   }
 
-  const parsed = metricSnapshotSchema.safeParse(args);
+  if (result !== undefined) {
+    const output = weatherOutputSchema.safeParse(result);
 
-  return parsed.success ? (
-    <MetricSnapshot {...parsed.data} />
-  ) : (
+    return output.success ? (
+      <WeatherCard {...output.data} />
+    ) : (
+      <WeatherCardError city={input.success ? input.data.city : undefined} />
+    );
+  }
+
+  return (
     <div className="generated-ui-loading">
       <span aria-hidden="true" />
-      Receiving typed component props…
+      {input.success
+        ? `Checking the local weather sample for ${input.data.city}…`
+        : "Receiving typed weather arguments…"}
     </div>
   );
 }
 
 const toolComponents = {
-  render_metric_snapshot: MetricSnapshotTool,
+  get_weather: WeatherTool,
 };
 
 export function ControlledDemo({
@@ -52,8 +67,8 @@ export function ControlledDemo({
       <aside className="prompt-panel">
         <h2>Try a prompt</h2>
         <p>
-          The agent can choose one component and fill only the props allowed by
-          its schema.
+          The agent chooses a typed backend tool. The host maps its streamed
+          state and validated result to one React component.
         </p>
         <div className="prompt-list">
           {prompts.map((prompt) => (
@@ -63,17 +78,17 @@ export function ControlledDemo({
           ))}
         </div>
         <div className="prompt-note">
-          Boundary: the Agent provides typed props. The Host keeps the component,
-          styles, accessibility, and behavior.
+          Boundary: the Agent supplies city and unit. The tool returns weather
+          data. The Host owns the card, states, accessibility, and actions.
         </div>
       </aside>
       <section className="chat-panel" aria-label="Controlled UI chat demo">
         <ChatRuntime
           availability={availability}
-          inputPlaceholder="Ask for a metric snapshot…"
+          inputPlaceholder="Ask about cycling weather…"
           mode="controlled"
           toolComponents={toolComponents}
-          welcomeMessage="Ask me to turn a few metrics into the host-owned React component."
+          welcomeMessage="Ask about Shanghai, Beijing, or Shenzhen weather. The result will use a host-owned React component."
         />
       </section>
     </div>

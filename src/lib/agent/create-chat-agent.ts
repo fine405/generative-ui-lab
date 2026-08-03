@@ -13,6 +13,11 @@ import {
   type Model,
   type ToolResultMessage,
 } from "@earendil-works/pi-ai";
+import {
+  weatherInputSchema,
+  weatherOutputSchema,
+  type WeatherOutput,
+} from "@/features/controlled/weather-contract";
 import type {
   AgentMode,
   ChatMessage,
@@ -24,9 +29,11 @@ import { getSupportedModel, piModels } from "@/lib/pi-models";
 
 const prompts: Record<AgentMode, string> = {
   controlled: `You are demonstrating controlled Generative UI.
-When the user provides or asks for metrics, call render_metric_snapshot.
-Keep titles, descriptions, labels, values, and trends concise.
-Use two to four metrics. Do not invent a different UI component.`,
+When the user asks about weather or cycling conditions, call get_weather.
+Always call the tool for weather requests, including unsupported locations, so the tool can report availability.
+The local demo has samples for Shanghai, Beijing, and Shenzhen.
+When the user asks for a ride plan after a weather result, use the previous tool result and answer with a concise route outline and two practical precautions. Do not call get_weather again unless the user asks for a different city.
+Do not invent a different UI component.`,
   open: `You are demonstrating open Generative UI.
 When the user asks for a visual, interactive widget, dashboard, diagram, calculator, or explainer, call render_open_ui.
 Pass a complete, self-contained HTML document in the html argument. Put all CSS and JavaScript inline and do not use Markdown fences, external assets, network requests, storage, navigation, or popups.
@@ -35,44 +42,97 @@ Use 6px controls, 12px cards, accessible labels and contrast, and font weights 4
 If the user asks a conceptual question that does not benefit from an interface, answer normally without calling the tool.`,
 };
 
-const metricTool: AgentTool = {
-  name: "render_metric_snapshot",
-  label: "Render metric snapshot",
+type WeatherSample = Omit<WeatherOutput, "temperature" | "unit"> & {
+  celsius: number;
+};
+
+const weatherSamples: Record<string, WeatherSample> = {
+  shanghai: {
+    city: "Shanghai",
+    celsius: 24,
+    condition: "Light rain",
+    humidity: 78,
+    windKph: 12,
+    riding: {
+      rating: "fair",
+      summary: "A short ride works if you bring a light rain layer.",
+    },
+  },
+  beijing: {
+    city: "Beijing",
+    celsius: 31,
+    condition: "Sunny",
+    humidity: 38,
+    windKph: 16,
+    riding: {
+      rating: "fair",
+      summary: "Prefer an early route and carry extra water.",
+    },
+  },
+  shenzhen: {
+    city: "Shenzhen",
+    celsius: 28,
+    condition: "Cloudy",
+    humidity: 72,
+    windKph: 9,
+    riding: {
+      rating: "good",
+      summary: "Comfortable for an easy ride with a hydration stop.",
+    },
+  },
+};
+
+const weatherAliases: Record<string, keyof typeof weatherSamples> = {
+  上海: "shanghai",
+  北京: "beijing",
+  深圳: "shenzhen",
+};
+
+const weatherTool: AgentTool = {
+  name: "get_weather",
+  label: "Get demo weather",
   description:
-    "Render a compact, read-only metric dashboard from two to four KPIs.",
+    "Return a local weather sample for a city so the host can render a cycling weather card.",
   parameters: Type.Object({
-    title: Type.String({ description: "A short title for the metric group" }),
-    summary: Type.String({
-      description: "One concise sentence explaining the snapshot",
+    city: Type.String({
+      description:
+        "City name. The demo has local samples for Shanghai, Beijing, and Shenzhen.",
     }),
-    period: Type.String({
-      description: "The reporting period, such as This week",
-    }),
-    metrics: Type.Array(
-      Type.Object({
-        label: Type.String({ description: "A short metric label" }),
-        value: Type.String({ description: "A formatted metric value" }),
-        change: Type.String({
-          description: "A short change label, such as +12%",
-        }),
-        trend: Type.Union([
-          Type.Literal("up"),
-          Type.Literal("down"),
-          Type.Literal("steady"),
-        ]),
-      }),
-      { minItems: 2, maxItems: 4 },
-    ),
+    unit: Type.Union([Type.Literal("celsius"), Type.Literal("fahrenheit")]),
   }),
-  async execute() {
+  async execute(_toolCallId, params) {
+    const input = weatherInputSchema.parse(params);
+
+    await new Promise((resolve) => setTimeout(resolve, 650));
+
+    const normalizedCity = input.city.trim().toLowerCase();
+    const sampleKey = weatherAliases[input.city.trim()] ?? normalizedCity;
+    const sample = weatherSamples[sampleKey];
+
+    if (!sample) {
+      throw new Error(`No local weather sample is available for ${input.city}.`);
+    }
+
+    const temperature =
+      input.unit === "celsius"
+        ? sample.celsius
+        : Math.round((sample.celsius * 9) / 5 + 32);
+    const output = weatherOutputSchema.parse({
+      ...sample,
+      temperature,
+      unit: input.unit,
+    });
+
     return {
       content: [
         {
           type: "text",
-          text: "The metric snapshot was rendered for the user.",
+          text: `${output.city}: ${output.temperature}° ${
+            output.unit === "celsius" ? "C" : "F"
+          }, ${output.condition}. ${output.riding.summary}`,
         },
       ],
-      details: { rendered: true },
+      details: output,
       terminate: true,
     };
   },
@@ -181,7 +241,9 @@ function toAgentMessages(
               type: "text" as const,
               text: part.isError
                 ? "The interface could not be rendered."
-                : "The interface was rendered for the user.",
+                : part.toolName === "get_weather"
+                  ? (JSON.stringify(part.result) ?? "The tool completed.")
+                  : "The interface was rendered for the user.",
             },
           ],
           isError: Boolean(part.isError),
@@ -247,7 +309,7 @@ export async function createChatAgent(
       systemPrompt: prompts[mode],
       model: selected.model,
       messages: toAgentMessages(messages.slice(0, -1), selected.model),
-      tools: mode === "controlled" ? [metricTool] : [openUITool],
+      tools: mode === "controlled" ? [weatherTool] : [openUITool],
     },
     streamFn: piModels.streamSimple.bind(piModels),
     ...(config.apiKey ? { getApiKey: () => config.apiKey } : {}),

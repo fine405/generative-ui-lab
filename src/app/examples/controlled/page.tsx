@@ -6,7 +6,7 @@ import { getChatAvailability } from "@/lib/env";
 export const metadata: Metadata = {
   title: "Controlled Generative UI",
   description:
-    "A typed React component selected and populated by a pi-agent-core agent.",
+    "A typed backend tool mapped to a host-owned React weather card.",
 };
 
 export default async function ControlledExamplePage() {
@@ -16,11 +16,11 @@ export default async function ControlledExamplePage() {
     <ExampleShell
       eyebrow="01 · CONTROLLED GENERATIVE UI"
       title="The agent chooses. The host renders."
-      description="A typed tool schema is the boundary. pi-agent-core executes the tool, the project protocol carries its state, and the host supplies the React renderer."
+      description="The agent supplies a city and unit. A backend tool returns validated weather data, the project protocol carries each state, and the host renders the card and owns its actions."
       facts={[
-        { label: "Agent output", value: "Tool call + props" },
-        { label: "Renderer", value: "Host React component" },
-        { label: "Isolation", value: "Native component boundary" },
+        { label: "Agent output", value: "get_weather + input" },
+        { label: "Tool output", value: "Validated weather data" },
+        { label: "Renderer", value: "Host WeatherCard" },
       ]}
     >
       <ControlledDemo availability={availability} />
